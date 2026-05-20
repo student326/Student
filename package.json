@@ -1,0 +1,26 @@
+{
+  "name": "student-portal",
+  "version": "1.0.0",
+  "description": "Full-stack Student Portal with Admin, Teacher, and Student interfaces",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev:backend": "cd backend && npm run server",
+    "dev:frontend": "cd frontend && npm run dev",
+    "db:init": "cd backend && npm run db:init",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run preview"
+  },
+  "keywords": [
+    "student-portal",
+    "education",
+    "react",
+    "express",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

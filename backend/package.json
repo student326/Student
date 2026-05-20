@@ -1,0 +1,28 @@
+{
+  "name": "student-portal-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Student Portal",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "server": "nodemon src/index.js",
+    "db:init": "node src/db/init.js",
+    "db:seed": "node src/db/seed.js",
+    "db:migrate": "node src/db/migrate.js",
+    "db:fix": "node src/db/fix.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
