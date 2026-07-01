@@ -5,46 +5,21 @@ const bcrypt = require('bcryptjs');
 const initDatabase = async () => {
   console.log('🔄 Initializing database...\n');
 
-  let adminClient;
   let appClient;
 
   try {
-    // Connect to postgres database first to create our database
-    adminClient = new Client({
-      user: process.env.DB_USER || 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      database: 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      port: process.env.DB_PORT || 5432,
-    });
+    const sslConfig = process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
 
-    await adminClient.connect();
-    console.log('✅ Connected to PostgreSQL');
-
-    // Create database if not exists
+    // Connect directly to our database (Neon manages the database)
     const dbName = process.env.DB_NAME || 'student_portal';
-    const dbCheck = await adminClient.query(
-      `SELECT 1 FROM pg_database WHERE datname = $1`,
-      [dbName]
-    );
 
-    if (dbCheck.rows.length === 0) {
-      await adminClient.query(`CREATE DATABASE ${dbName}`);
-      console.log(`✅ Database '${dbName}' created`);
-    } else {
-      console.log(`ℹ️  Database '${dbName}' already exists`);
-    }
-
-    await adminClient.end();
-    adminClient = null;
-
-    // Connect to our database
     appClient = new Client({
       user: process.env.DB_USER || 'postgres',
       host: process.env.DB_HOST || 'localhost',
       database: dbName,
       password: process.env.DB_PASSWORD || 'postgres',
       port: process.env.DB_PORT || 5432,
+      ssl: sslConfig,
     });
 
     await appClient.connect();
@@ -322,7 +297,6 @@ const initDatabase = async () => {
     console.error('❌ Database initialization failed:', error.message);
     throw error;
   } finally {
-    if (adminClient) await adminClient.end();
     if (appClient) await appClient.end();
     process.exit(0);
   }
