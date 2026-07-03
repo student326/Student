@@ -365,6 +365,115 @@ class Models {
     );
   }
 
+  // ==================== LIVE CLASSES ====================
+  static async createLiveClass(title, description, meetingUrl, startTime, categoryId, teacherId) {
+    const result = await pool.query(
+      `INSERT INTO live_classes (title, description, meeting_url, start_time, category_id, teacher_id) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [title, description || '', meetingUrl, startTime, categoryId, teacherId]
+    );
+    return result.rows[0];
+  }
+
+  static async getLiveClasses(categoryId = null) {
+    let query = `
+      SELECT lc.*, c.name as category_name, u.name as teacher_name 
+      FROM live_classes lc
+      JOIN categories c ON lc.category_id = c.id
+      JOIN users u ON lc.teacher_id = u.id
+    `;
+    const params = [];
+    if (categoryId) {
+      query += ' WHERE lc.category_id = $1';
+      params.push(categoryId);
+    }
+    query += ' ORDER BY lc.start_time ASC';
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  static async getLiveClassesByTeacher(teacherId) {
+    const result = await pool.query(
+      `SELECT lc.*, c.name as category_name 
+       FROM live_classes lc
+       JOIN categories c ON lc.category_id = c.id
+       WHERE lc.teacher_id = $1 
+       ORDER BY lc.start_time DESC`,
+      [teacherId]
+    );
+    return result.rows;
+  }
+
+  // ==================== LIVE CHATS ====================
+  static async createLiveChat(liveClassId, userId, message) {
+    const result = await pool.query(
+      `INSERT INTO live_chats (live_class_id, user_id, message) 
+       VALUES ($1, $2, $3) RETURNING *`,
+      [liveClassId, userId, message]
+    );
+    return result.rows[0];
+  }
+
+  static async getLiveChats(liveClassId) {
+    const result = await pool.query(
+      `SELECT lc.*, u.name as user_name, u.role as user_role
+       FROM live_chats lc
+       JOIN users u ON lc.user_id = u.id
+       WHERE lc.live_class_id = $1
+       ORDER BY lc.created_at ASC`,
+      [liveClassId]
+    );
+    return result.rows;
+  }
+
+  // ==================== VIDEO BOOKMARKS ====================
+  static async createVideoBookmark(studentId, videoId, timestampSec, label) {
+    const result = await pool.query(
+      `INSERT INTO video_bookmarks (student_id, video_id, timestamp_sec, label) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [studentId, videoId, timestampSec, label]
+    );
+    return result.rows[0];
+  }
+
+  static async getVideoBookmarks(studentId, videoId) {
+    const result = await pool.query(
+      `SELECT * FROM video_bookmarks 
+       WHERE student_id = $1 AND video_id = $2
+       ORDER BY timestamp_sec ASC`,
+      [studentId, videoId]
+    );
+    return result.rows;
+  }
+
+  static async deleteVideoBookmark(id) {
+    await pool.query('DELETE FROM video_bookmarks WHERE id = $1', [id]);
+  }
+
+  // ==================== VIDEO TRANSCRIPTS ====================
+  static async createVideoTranscript(videoId, startSec, endSec, text) {
+    const result = await pool.query(
+      `INSERT INTO video_transcripts (video_id, start_sec, end_sec, text) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [videoId, startSec, endSec, text]
+    );
+    return result.rows[0];
+  }
+
+  static async getVideoTranscripts(videoId) {
+    const result = await pool.query(
+      `SELECT * FROM video_transcripts 
+       WHERE video_id = $1 
+       ORDER BY start_sec ASC`,
+      [videoId]
+    );
+    return result.rows;
+  }
+
+  static async clearVideoTranscripts(videoId) {
+    await pool.query('DELETE FROM video_transcripts WHERE video_id = $1', [videoId]);
+  }
+
   // ==================== NOTIFICATIONS ====================
   static async createNotification(adminId, title, message, type = 'info', purchaseId = null) {
     const result = await pool.query(

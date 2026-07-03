@@ -87,8 +87,15 @@ app.use((req, res, next) => {
 });
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || process.env.VERCEL) return callback(null, true);
+    callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
@@ -101,14 +108,19 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
-// Database connection
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'student_portal',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: process.env.DB_PORT || 5432,
-});
+// Database connection (supports both DATABASE_URL for Vercel/Neon and individual params)
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    })
+  : new Pool({
+      user: process.env.DB_USER || 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'student_portal',
+      password: process.env.DB_PASSWORD || 'postgres',
+      port: process.env.DB_PORT || 5432,
+    });
 
 // ==================== SECURITY CONFIG ====================
 
@@ -1659,6 +1671,158 @@ app.put('/api/admin/purchases/:id', authenticateToken, requireRole('admin'), asy
   }
 });
 
+// ==================== LIVE CLASSES & CHAT ====================
+
+app.get('/api/live-classes', authenticateToken, async (req, res) => {
+  try {
+    const { categoryId } = req.query;
+    let query = `
+      SELECT lc.*, c.name as category_name, u.name as teacher_name 
+      FROM live_classes lc
+      JOIN categories c ON lc.category_id = c.id
+      JOIN users u ON lc.teacher_id = u.id
+    `;
+    const params = [];
+    if (req.user.role === 'teacher') {
+      query += ' WHERE lc.teacher_id = $1';
+      params.push(req.user.id);
+    } else if (categoryId) {
+      query += ' WHERE lc.category_id = $1';
+      params.push(categoryId);
+    }
+    query += ' ORDER BY lc.start_time ASC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get live classes error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/live-classes', authenticateToken, requireRole('teacher', 'admin'), async (req, res) => {
+  try {
+    const { title, description, meetingUrl, startTime, categoryId } = req.body;
+    const result = await pool.query(
+      `INSERT INTO live_classes (title, description, meeting_url, start_time, category_id, teacher_id) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [title, description || '', meetingUrl, startTime, categoryId, req.user.id]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create live class error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/live-classes/:id/chat', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT lc.*, u.name as user_name, u.role as user_role
+       FROM live_chats lc
+       JOIN users u ON lc.user_id = u.id
+       WHERE lc.live_class_id = $1
+       ORDER BY lc.created_at ASC`,
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get live chat error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/live-classes/:id/chat', authenticateToken, async (req, res) => {
+  try {
+    const { message } = req.body;
+    const result = await pool.query(
+      `INSERT INTO live_chats (live_class_id, user_id, message) 
+       VALUES ($1, $2, $3) RETURNING *`,
+      [req.params.id, req.user.id, message]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Post live chat error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ==================== VIDEO BOOKMARKS & TRANSCRIPTS ====================
+
+app.get('/api/videos/:id/bookmarks', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM video_bookmarks 
+       WHERE student_id = $1 AND video_id = $2
+       ORDER BY timestamp_sec ASC`,
+      [req.user.id, req.params.id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get bookmarks error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/videos/:id/bookmarks', authenticateToken, async (req, res) => {
+  try {
+    const { timestampSec, label } = req.body;
+    const result = await pool.query(
+      `INSERT INTO video_bookmarks (student_id, video_id, timestamp_sec, label) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [req.user.id, req.params.id, timestampSec, label]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create bookmark error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.delete('/api/bookmarks/:id', authenticateToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM video_bookmarks WHERE id = $1 AND student_id = $2', [req.params.id, req.user.id]);
+    res.json({ message: 'Bookmark deleted' });
+  } catch (error) {
+    console.error('Delete bookmark error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/videos/:id/transcripts', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM video_transcripts 
+       WHERE video_id = $1 
+       ORDER BY start_sec ASC`,
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get transcripts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/videos/:id/transcripts', authenticateToken, requireRole('teacher', 'admin'), async (req, res) => {
+  try {
+    const { transcripts } = req.body; // Expect an array of { startSec, endSec, text }
+    await pool.query('BEGIN');
+    await pool.query('DELETE FROM video_transcripts WHERE video_id = $1', [req.params.id]);
+    for (const t of transcripts) {
+      await pool.query(
+        `INSERT INTO video_transcripts (video_id, start_sec, end_sec, text) VALUES ($1, $2, $3, $4)`,
+        [req.params.id, t.startSec, t.endSec, t.text]
+      );
+    }
+    await pool.query('COMMIT');
+    res.status(201).json({ message: 'Transcripts saved' });
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    console.error('Save transcripts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ==================== HEALTH CHECK ====================
 
 app.get('/api/health', (req, res) => {
@@ -1679,6 +1843,9 @@ const startServer = async () => {
   });
 };
 
-startServer();
+// Only start the HTTP server in local dev; on Vercel the app is exported as a serverless function
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 module.exports = app;

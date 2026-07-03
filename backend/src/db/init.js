@@ -9,18 +9,24 @@ const initDatabase = async () => {
 
   try {
     const sslConfig = process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
-
-    // Connect directly to our database (Neon manages the database)
     const dbName = process.env.DB_NAME || 'student_portal';
 
-    appClient = new Client({
-      user: process.env.DB_USER || 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      database: dbName,
-      password: process.env.DB_PASSWORD || 'postgres',
-      port: process.env.DB_PORT || 5432,
-      ssl: sslConfig,
-    });
+    if (process.env.DATABASE_URL) {
+      appClient = new Client({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      });
+    } else {
+      // Connect directly to our database (Neon manages the database)
+      appClient = new Client({
+        user: process.env.DB_USER || 'postgres',
+        host: process.env.DB_HOST || 'localhost',
+        database: dbName,
+        password: process.env.DB_PASSWORD || 'postgres',
+        port: process.env.DB_PORT || 5432,
+        ssl: sslConfig,
+      });
+    }
 
     await appClient.connect();
     console.log(`✅ Connected to database '${dbName}'\n`);
@@ -194,6 +200,59 @@ const initDatabase = async () => {
       );
     `);
     console.log('  ✓ notifications table');
+
+    await appClient.query(`
+      -- Live classes table
+      CREATE TABLE IF NOT EXISTS live_classes (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        meeting_url VARCHAR(500) NOT NULL,
+        start_time TIMESTAMP NOT NULL,
+        category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+        teacher_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR(50) DEFAULT 'scheduled',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('  ✓ live_classes table');
+
+    await appClient.query(`
+      -- Live chats table
+      CREATE TABLE IF NOT EXISTS live_chats (
+        id SERIAL PRIMARY KEY,
+        live_class_id INTEGER REFERENCES live_classes(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('  ✓ live_chats table');
+
+    await appClient.query(`
+      -- Video bookmarks table
+      CREATE TABLE IF NOT EXISTS video_bookmarks (
+        id SERIAL PRIMARY KEY,
+        student_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        video_id INTEGER REFERENCES videos(id) ON DELETE CASCADE,
+        timestamp_sec INTEGER NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('  ✓ video_bookmarks table');
+
+    await appClient.query(`
+      -- Video transcripts table
+      CREATE TABLE IF NOT EXISTS video_transcripts (
+        id SERIAL PRIMARY KEY,
+        video_id INTEGER REFERENCES videos(id) ON DELETE CASCADE,
+        start_sec INTEGER NOT NULL,
+        end_sec INTEGER NOT NULL,
+        text TEXT NOT NULL
+      );
+    `);
+    console.log('  ✓ video_transcripts table');
 
     console.log('\n📊 Creating default users...');
 

@@ -129,10 +129,7 @@ const AdminDashboard = () => {
           <h3>🎓 Enrollments</h3>
           <p>Manage course enrollments</p>
         </div>
-        <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/attendance')}>
-          <h3>✅ Attendance</h3>
-          <p>Track student attendance</p>
-        </div>
+
       </div>
 
       {/* Notifications Panel */}

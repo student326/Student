@@ -401,8 +401,7 @@ const LoginPage = () => {
     <div className="login-page">
       <div className="login-card animate-fade-in">
         <div className="login-header">
-          <div className="logo"><img src="/logo.jpeg" alt="Markpro360 Student Portal" /></div>
-          <h1>Markpro360 Student Portal</h1>
+          <div className="logo"><img src="/mp360-logo.png" alt="Markpro360 Student Portal" /></div>
           <p>Learning Management System</p>
         </div>
         
@@ -477,14 +476,14 @@ const AdminDashboard = () => {
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/logo.jpeg" alt="Markpro360 Student Portal" className="sidebar-logo" />
+          <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
         <nav className="nav-menu">
           <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
             📊 Dashboard
           </button>
           <button className={activeTab === 'categories' ? 'active' : ''} onClick={() => setActiveTab('categories')}>
-            📚 Categories
+            📚 Courses
           </button>
           <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
             👥 Users
@@ -492,9 +491,7 @@ const AdminDashboard = () => {
           <button className={activeTab === 'enrollments' ? 'active' : ''} onClick={() => setActiveTab('enrollments')}>
             🎓 Enrollments
           </button>
-          <button className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}>
-            ✅ Attendance
-          </button>
+
           <button className={activeTab === 'purchases' ? 'active' : ''} onClick={() => setActiveTab('purchases')}>
             💰 Purchases {stats.pendingPurchases > 0 && <span className="badge">{stats.pendingPurchases}</span>}
           </button>
@@ -512,7 +509,7 @@ const AdminDashboard = () => {
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
         
         <div className="top-bar">
-          <h1>{activeTab === 'dashboard' ? 'Dashboard Overview' : activeTab === 'categories' ? 'Course Categories' : activeTab === 'users' ? 'User Management' : activeTab === 'enrollments' ? 'Enrollments' : activeTab === 'attendance' ? 'Attendance' : activeTab === 'purchases' ? 'Purchase Requests' : ''}</h1>
+          <h1>{activeTab === 'dashboard' ? 'Dashboard Overview' : activeTab === 'categories' ? 'Courses' : activeTab === 'users' ? 'User Management' : activeTab === 'enrollments' ? 'Enrollments' : activeTab === 'purchases' ? 'Purchase Requests' : ''}</h1>
           <div className="top-bar-actions">
             <NotificationBell />
             <ThemeToggle />
@@ -540,7 +537,7 @@ const AdminDashboard = () => {
                 <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #4facfe, #00f2fe)' }}>📚</div>
                 <div className="stat-info">
                   <h3>{stats.courses || 0}</h3>
-                  <p>Categories</p>
+                  <p>Courses</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -599,7 +596,7 @@ const AdminDashboard = () => {
         {activeTab === 'categories' && <CategoriesTab showToast={showToast} onUpdate={loadStats} />}
         {activeTab === 'users' && <UsersTab showToast={showToast} />}
         {activeTab === 'enrollments' && <EnrollmentsTab showToast={showToast} />}
-        {activeTab === 'attendance' && <AttendanceTab showToast={showToast} />}
+
         {activeTab === 'purchases' && <PurchasesTab showToast={showToast} onUpdate={loadStats} />}
       </main>
     </div>
@@ -632,13 +629,13 @@ const CategoriesTab = ({ showToast, onUpdate }) => {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
-        showToast('Category updated successfully!', 'success');
+        showToast('Course updated successfully!', 'success');
       } else {
         await apiFetch('/categories', {
           method: 'POST',
           body: JSON.stringify(formData)
         });
-        showToast('Category created successfully!', 'success');
+        showToast('Course created successfully!', 'success');
       }
       setShowModal(false);
       setEditingCategory(null);
@@ -651,10 +648,10 @@ const CategoriesTab = ({ showToast, onUpdate }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!confirm('Are you sure you want to delete this course?')) return;
     try {
       await apiFetch(`/categories/${id}`, { method: 'DELETE' });
-      showToast('Category deleted successfully!', 'success');
+      showToast('Course deleted successfully!', 'success');
       loadCategories();
       onUpdate();
     } catch (err) {
@@ -671,9 +668,9 @@ const CategoriesTab = ({ showToast, onUpdate }) => {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1>Course Categories</h1>
+        <h1>Courses</h1>
         <button className="btn btn-primary" onClick={() => { setEditingCategory(null); setShowModal(true); }}>
-          + Add Category
+          + Add Course
         </button>
       </div>
 
@@ -703,12 +700,12 @@ const CategoriesTab = ({ showToast, onUpdate }) => {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingCategory ? 'Edit Category' : 'Add New Category'}</h2>
+              <h2>{editingCategory ? 'Edit Course' : 'Add New Course'}</h2>
               <button onClick={() => setShowModal(false)}>×</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Category Name</label>
+                <label>Course Name</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -756,7 +753,7 @@ const CategoriesTab = ({ showToast, onUpdate }) => {
                 </div>
               </div>
               <button type="submit" className="btn btn-primary btn-block">
-                {editingCategory ? 'Update Category' : 'Create Category'}
+                {editingCategory ? 'Update Course' : 'Create Course'}
               </button>
             </form>
           </div>
@@ -1367,12 +1364,18 @@ const PurchasesTab = ({ showToast, onUpdate }) => {
 
 // ==================== TEACHER DASHBOARD ====================
 const TeacherDashboard = () => {
+  const [activeTab, setActiveTab] = useState('videos');
   const [videos, setVideos] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [liveClasses, setLiveClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showLiveModal, setShowLiveModal] = useState(false);
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', category_id: '', duration: '' });
+  const [liveFormData, setLiveFormData] = useState({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
   const [videoFile, setVideoFile] = useState(null);
   const [toast, setToast] = useState(null);
   const { logout, user } = useAuth();
@@ -1382,12 +1385,14 @@ const TeacherDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [videosData, catsData] = await Promise.all([
+      const [videosData, catsData, liveData] = await Promise.all([
         apiFetch('/teacher/videos'),
-        apiFetch('/categories')
+        apiFetch('/categories'),
+        apiFetch('/live-classes')
       ]);
       setVideos(videosData);
       setCategories(catsData);
+      setLiveClasses(liveData);
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
@@ -1437,6 +1442,42 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleScheduleLiveClass = async (e) => {
+    e.preventDefault();
+    try {
+      await apiFetch('/live-classes', {
+        method: 'POST',
+        body: JSON.stringify({ ...liveFormData, startTime: new Date(liveFormData.startTime).toISOString() })
+      });
+      showToast('Live Class Scheduled!', 'success');
+      setShowLiveModal(false);
+      setLiveFormData({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
+      loadData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleGenerateTranscript = async () => {
+    if (!selectedVideoId) return;
+    try {
+      // Mock AI generation
+      const mockTranscripts = [
+        { startSec: 0, endSec: 5, text: "Welcome to this lecture." },
+        { startSec: 5, endSec: 10, text: "Today we will discuss an important topic." },
+        { startSec: 10, endSec: 20, text: "Let's dive into the core concepts." }
+      ];
+      await apiFetch(`/videos/${selectedVideoId}/transcripts`, {
+        method: 'POST',
+        body: JSON.stringify({ transcripts: mockTranscripts })
+      });
+      showToast('Transcripts generated and saved successfully!', 'success');
+      setShowTranscriptModal(false);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -1448,10 +1489,11 @@ const TeacherDashboard = () => {
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/logo.jpeg" alt="Markpro360 Student Portal" className="sidebar-logo" />
+          <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
         <nav className="nav-menu">
-          <button className="active">📊 Dashboard</button>
+          <button className={activeTab === 'videos' ? 'active' : ''} onClick={() => setActiveTab('videos')}>📊 Videos</button>
+          <button className={activeTab === 'live' ? 'active' : ''} onClick={() => setActiveTab('live')}>📡 Live Classes</button>
         </nav>
         <div className="sidebar-footer">
           <div className="user-info">
@@ -1466,11 +1508,17 @@ const TeacherDashboard = () => {
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
         <div className="top-bar">
-          <h1>My Videos</h1>
+          <h1>{activeTab === 'videos' ? 'My Videos' : 'My Live Classes'}</h1>
           <div className="top-bar-actions">
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              + Upload Video
-            </button>
+            {activeTab === 'videos' ? (
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                + Upload Video
+              </button>
+            ) : (
+              <button className="btn btn-primary" onClick={() => setShowLiveModal(true)}>
+                + Schedule Class
+              </button>
+            )}
             <NotificationBell />
             <ThemeToggle />
           </div>
@@ -1489,7 +1537,7 @@ const TeacherDashboard = () => {
           </div>
 
           <div className="videos-grid">
-            {videos.map(video => (
+            {activeTab === 'videos' ? videos.map(video => (
               <div key={video.id} className="video-card">
                 <div className="video-thumbnail" style={{ background: video.category_color || '#1e40af' }}>
                   <span className="play-icon">▶</span>
@@ -1502,9 +1550,27 @@ const TeacherDashboard = () => {
                     <span>👁️ {video.views || 0} views</span>
                     <span>⏱️ {video.duration || 0}s</span>
                   </div>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(video.id)}>
-                    Delete
-                  </button>
+                  <div className="video-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedVideoId(video.id); setShowTranscriptModal(true); }}>
+                      Transcripts
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(video.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )) : liveClasses.map(lc => (
+              <div key={lc.id} className="video-card">
+                <div className="video-info" style={{ padding: '1rem' }}>
+                  <h3>{lc.title}</h3>
+                  <p className="category-tag">{lc.category_name}</p>
+                  <div className="video-meta">
+                    <span>📅 {new Date(lc.start_time).toLocaleString()}</span>
+                  </div>
+                  <a href={lc.meeting_url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ marginTop: '0.5rem', display: 'block', textAlign: 'center' }}>
+                    Join Meeting
+                  </a>
                 </div>
               </div>
             ))}
@@ -1576,6 +1642,60 @@ const TeacherDashboard = () => {
             </div>
           </div>
         )}
+
+        {showLiveModal && (
+          <div className="modal-overlay" onClick={() => setShowLiveModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Schedule Live Class</h2>
+                <button onClick={() => setShowLiveModal(false)}>×</button>
+              </div>
+              <form onSubmit={handleScheduleLiveClass}>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input type="text" value={liveFormData.title} onChange={e => setLiveFormData({ ...liveFormData, title: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea value={liveFormData.description} onChange={e => setLiveFormData({ ...liveFormData, description: e.target.value })} rows={2} />
+                </div>
+                <div className="form-group">
+                  <label>Course</label>
+                  <select value={liveFormData.categoryId} onChange={e => setLiveFormData({ ...liveFormData, categoryId: e.target.value })} required>
+                    <option value="">Select course...</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Start Time</label>
+                  <input type="datetime-local" value={liveFormData.startTime} onChange={e => setLiveFormData({ ...liveFormData, startTime: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Meeting URL (Zoom/Meet)</label>
+                  <input type="url" value={liveFormData.meetingUrl} onChange={e => setLiveFormData({ ...liveFormData, meetingUrl: e.target.value })} required />
+                </div>
+                <button type="submit" className="btn btn-primary btn-block">Schedule Class</button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showTranscriptModal && (
+          <div className="modal-overlay" onClick={() => setShowTranscriptModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Manage Transcripts</h2>
+                <button onClick={() => setShowTranscriptModal(false)}>×</button>
+              </div>
+              <div className="modal-body" style={{ textAlign: 'center', padding: '2rem' }}>
+                <p>Use AI to automatically generate transcripts for this video based on its audio content.</p>
+                <button className="btn btn-primary" onClick={handleGenerateTranscript}>
+                  ✨ Auto-Generate Transcript (Mock)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -1583,17 +1703,28 @@ const TeacherDashboard = () => {
 
 // ==================== STUDENT DASHBOARD ====================
 const StudentDashboard = () => {
+  const [activeTab, setActiveTab] = useState('courses');
   const [enrollments, setEnrollments] = useState([]);
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [liveClasses, setLiveClasses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseVideos, setCourseVideos] = useState([]);
   const [currentVideo, setCurrentVideo] = useState(null);
   const [notes, setNotes] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
+  const [transcripts, setTranscripts] = useState([]);
+  const [activeTranscriptIndex, setActiveTranscriptIndex] = useState(-1);
   const [newNote, setNewNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newChatMessage, setNewChatMessage] = useState('');
+  const [selectedLiveClass, setSelectedLiveClass] = useState(null);
   const videoRef = useRef(null);
+  const chatEndRef = useRef(null);
+  const transcriptRef = useRef(null);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -1601,12 +1732,17 @@ const StudentDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [enrollData, coursesData] = await Promise.all([
+      const [enrollData, coursesData, liveData] = await Promise.all([
         apiFetch('/student/enrollments'),
-        apiFetch('/student/available-courses')
+        apiFetch('/student/available-courses'),
+        apiFetch('/live-classes')
       ]);
       setEnrollments(enrollData);
       setAvailableCourses(coursesData.filter(c => !c.is_enrolled));
+      
+      // Filter live classes based on enrollments
+      const enrolledCategoryIds = enrollData.map(e => e.category_id);
+      setLiveClasses(liveData.filter(lc => enrolledCategoryIds.includes(lc.category_id)));
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
@@ -1656,6 +1792,20 @@ const StudentDashboard = () => {
     const video = videoRef.current;
     const progress = isEnded ? 100 : (video.currentTime / video.duration) * 100;
     setVideoProgress(progress);
+
+    // Sync transcript
+    const currentTime = video.currentTime;
+    const activeIndex = transcripts.findIndex(t => currentTime >= t.start_sec && currentTime < t.end_sec);
+    if (activeIndex !== -1 && activeIndex !== activeTranscriptIndex) {
+      setActiveTranscriptIndex(activeIndex);
+      // Auto-scroll transcript
+      if (transcriptRef.current) {
+        const activeElement = transcriptRef.current.children[activeIndex];
+        if (activeElement) {
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
     
     if (isEnded || Math.floor(progress) % 10 === 0) {
       apiFetch('/student/video-progress', {
@@ -1710,11 +1860,104 @@ const StudentDashboard = () => {
     setCourseVideos([]);
     setCurrentVideo(null);
     setNotes([]);
+    setBookmarks([]);
+    setTranscripts([]);
+    setSelectedLiveClass(null);
   };
 
-  const selectVideo = (video) => {
+  const selectVideo = async (video) => {
     setCurrentVideo(video);
     loadNotes(video.id);
+    
+    // Load advanced features
+    try {
+      const [bks, ts] = await Promise.all([
+        apiFetch(`/videos/${video.id}/bookmarks`),
+        apiFetch(`/videos/${video.id}/transcripts`)
+      ]);
+      setBookmarks(bks);
+      setTranscripts(ts);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // --- Advanced Player Features ---
+  const changeSpeed = (speed) => {
+    setPlaybackSpeed(speed);
+    if (videoRef.current) videoRef.current.playbackRate = speed;
+  };
+
+  const togglePiP = async () => {
+    if (!videoRef.current) return;
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+    } else {
+      await videoRef.current.requestPictureInPicture();
+    }
+  };
+
+  const addBookmark = async () => {
+    if (!videoRef.current || !currentVideo) return;
+    const timestamp = Math.floor(videoRef.current.currentTime);
+    const label = prompt('Enter a label for this bookmark:');
+    if (!label) return;
+
+    try {
+      await apiFetch(`/videos/${currentVideo.id}/bookmarks`, {
+        method: 'POST',
+        body: JSON.stringify({ timestampSec: timestamp, label })
+      });
+      showToast('Bookmark added!', 'success');
+      // Reload bookmarks
+      const bks = await apiFetch(`/videos/${currentVideo.id}/bookmarks`);
+      setBookmarks(bks);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const jumpToTime = (seconds) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = seconds;
+      videoRef.current.play();
+    }
+  };
+
+  // --- Live Chat Features ---
+  const joinLiveClass = async (lc) => {
+    setSelectedLiveClass(lc);
+    loadChat(lc.id);
+    // Polling mock (in real app, use WebSockets)
+    const interval = setInterval(() => {
+      if (selectedLiveClass?.id === lc.id) loadChat(lc.id);
+    }, 5000);
+    return () => clearInterval(interval);
+  };
+
+  const loadChat = async (id) => {
+    try {
+      const msgs = await apiFetch(`/live-classes/${id}/chat`);
+      setChatMessages(msgs);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendChatMessage = async (e) => {
+    e.preventDefault();
+    if (!newChatMessage.trim() || !selectedLiveClass) return;
+    try {
+      await apiFetch(`/live-classes/${selectedLiveClass.id}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ message: newChatMessage })
+      });
+      setNewChatMessage('');
+      loadChat(selectedLiveClass.id);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -1723,10 +1966,11 @@ const StudentDashboard = () => {
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/logo.jpeg" alt="Markpro360 Student Portal" className="sidebar-logo" />
+          <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
         <nav className="nav-menu">
-          <button className="active" onClick={closeCourse}>📚 My Courses</button>
+          <button className={activeTab === 'courses' ? 'active' : ''} onClick={() => { setActiveTab('courses'); closeCourse(); }}>📚 My Courses</button>
+          <button className={activeTab === 'live-classes' ? 'active' : ''} onClick={() => { setActiveTab('live-classes'); closeCourse(); }}>📡 Live Classes</button>
         </nav>
         <div className="sidebar-footer">
           <div className="user-info">
@@ -1748,7 +1992,75 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {!selectedCourse ? (
+        {activeTab === 'live-classes' ? (
+          <div className="animate-fade-in">
+            {selectedLiveClass ? (
+              <div className="live-class-view">
+                <button className="btn btn-secondary back-btn" onClick={() => setSelectedLiveClass(null)}>
+                  ← Back to Live Classes
+                </button>
+                <h2>{selectedLiveClass.title}</h2>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ flex: 2 }}>
+                    <div className="video-player" style={{ background: '#000', padding: '2rem', textAlign: 'center', borderRadius: '12px' }}>
+                      <h3 style={{ color: '#fff' }}>Streaming on External Platform</h3>
+                      <p style={{ color: '#aaa', marginBottom: '1rem' }}>Please join the meeting using the link below.</p>
+                      <a href={selectedLiveClass.meeting_url} target="_blank" rel="noreferrer" className="btn btn-primary btn-lg">
+                        Join Live Meeting
+                      </a>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, background: '#fff', padding: '1rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', maxHeight: '500px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <h3>Live Chat</h3>
+                    <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1rem', padding: '0.5rem', border: '1px solid #eee', borderRadius: '8px' }}>
+                      {chatMessages.map(msg => (
+                        <div key={msg.id} style={{ marginBottom: '0.5rem' }}>
+                          <strong style={{ color: msg.user_role === 'teacher' ? '#3498DB' : '#333' }}>{msg.user_name}</strong>: {msg.message}
+                        </div>
+                      ))}
+                      <div ref={chatEndRef} />
+                    </div>
+                    <form onSubmit={sendChatMessage} style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="text" 
+                        value={newChatMessage} 
+                        onChange={e => setNewChatMessage(e.target.value)} 
+                        placeholder="Say something..."
+                        style={{ flex: 1, padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                      />
+                      <button type="submit" className="btn btn-primary">Send</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <section className="courses-section">
+                <h2>📡 Upcoming Live Classes</h2>
+                {liveClasses.length === 0 ? (
+                  <p>No upcoming live classes for your enrolled courses.</p>
+                ) : (
+                  <div className="courses-grid">
+                    {liveClasses.map(lc => (
+                      <div key={lc.id} className="course-card">
+                        <div className="course-header" style={{ background: '#e74c3c' }}>
+                          <h3>{lc.title}</h3>
+                        </div>
+                        <div className="course-body">
+                          <p>{lc.description}</p>
+                          <p><strong>Course:</strong> {lc.category_name}</p>
+                          <p><strong>Start Time:</strong> {new Date(lc.start_time).toLocaleString()}</p>
+                          <button className="btn btn-primary btn-block" onClick={() => joinLiveClass(lc)}>
+                            Enter Class
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+        ) : !selectedCourse ? (
           <div className="animate-fade-in">
             {enrollments.length > 0 && (
               <section className="courses-section">
@@ -1854,60 +2166,128 @@ const StudentDashboard = () => {
             </div>
 
             <div className="course-view-content">
-              <div className="video-player-section">
-                {currentVideo ? (
-                  <>
-                    <div className="video-player">
-                      <video
-                        ref={videoRef}
-                        src={currentVideo.video_url}
-                        controls
-                        autoPlay
-                        onTimeUpdate={handleVideoProgress}
-                        onEnded={() => handleVideoProgress(true)}
-                      />
-                      <div className="video-progress-bar">
-                        <div 
-                          className="video-progress-fill" 
-                          style={{ width: `${videoProgress}%` }}
+              <div className="video-player-section" style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 3 }}>
+                  {currentVideo ? (
+                    <>
+                      <div className="video-player" style={{ position: 'relative' }}>
+                        <video
+                          ref={videoRef}
+                          src={currentVideo.video_url}
+                          controls
+                          autoPlay
+                          onTimeUpdate={handleVideoProgress}
+                          onEnded={() => handleVideoProgress(true)}
                         />
+                        <div className="video-progress-bar">
+                          <div 
+                            className="video-progress-fill" 
+                            style={{ width: `${videoProgress}%` }}
+                          />
+                        </div>
+                        {/* Custom Controls Bar */}
+                        <div className="custom-controls" style={{ display: 'flex', gap: '10px', padding: '10px', background: '#f8f9fa', borderRadius: '0 0 12px 12px', alignItems: 'center' }}>
+                          <select value={playbackSpeed} onChange={e => changeSpeed(Number(e.target.value))} style={{ padding: '4px', borderRadius: '4px' }}>
+                            <option value={0.5}>0.5x</option>
+                            <option value={1}>1.0x</option>
+                            <option value={1.25}>1.25x</option>
+                            <option value={1.5}>1.5x</option>
+                            <option value={2}>2.0x</option>
+                          </select>
+                          <button className="btn btn-secondary btn-sm" onClick={togglePiP}>PiP Mode</button>
+                          <button className="btn btn-primary btn-sm" onClick={addBookmark}>+ Add Bookmark</button>
+                        </div>
                       </div>
+                      
+                      <div className="video-details" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <h3>{currentVideo.title}</h3>
+                          <p>{currentVideo.description}</p>
+                          
+                          <div className="notes-section" style={{ marginTop: '2rem' }}>
+                            <h3>📝 My Notes</h3>
+                            <form onSubmit={handleAddNote} className="note-form">
+                              <textarea
+                                value={newNote}
+                                onChange={e => setNewNote(e.target.value)}
+                                placeholder="Write your notes here..."
+                                rows={3}
+                              />
+                              <button type="submit" className="btn btn-primary btn-sm">Add Note</button>
+                            </form>
+                            <div className="notes-list">
+                              {notes.map(note => (
+                                <div key={note.id} className="note-card">
+                                  <p>{note.content}</p>
+                                  <small>{new Date(note.created_at).toLocaleString()}</small>
+                                  <button onClick={() => handleDeleteNote(note.id)}>×</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bookmarks Panel */}
+                        <div style={{ flex: 1, background: '#fff', padding: '1rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                          <h3>📌 Bookmarks</h3>
+                          {bookmarks.length === 0 ? (
+                            <p style={{ color: '#aaa' }}>No bookmarks yet.</p>
+                          ) : (
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                              {bookmarks.map(bk => (
+                                <li key={bk.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #eee' }}>
+                                  <span style={{ cursor: 'pointer', color: '#1e40af' }} onClick={() => jumpToTime(bk.timestamp_sec)}>
+                                    ⏱️ {Math.floor(bk.timestamp_sec / 60)}:{(bk.timestamp_sec % 60).toString().padStart(2, '0')} - {bk.label}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="no-video">
+                      <p>No videos in this course yet.</p>
                     </div>
-                    <div className="video-details">
-                      <h3>{currentVideo.title}</h3>
-                      <p>{currentVideo.description}</p>
+                  )}
+                </div>
+
+                {/* Transcripts Panel */}
+                {currentVideo && (
+                  <div style={{ flex: 1, background: '#fff', borderRadius: '12px', display: 'flex', flexDirection: 'column', maxHeight: '600px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <h3 style={{ padding: '1rem', borderBottom: '1px solid #eee', margin: 0 }}>Interactive Transcript</h3>
+                    <div ref={transcriptRef} style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+                      {transcripts.length === 0 ? (
+                        <p style={{ color: '#aaa' }}>No transcript available.</p>
+                      ) : (
+                        transcripts.map((t, i) => (
+                          <div 
+                            key={t.id} 
+                            onClick={() => jumpToTime(t.start_sec)}
+                            style={{ 
+                              padding: '0.5rem', 
+                              cursor: 'pointer', 
+                              borderRadius: '4px',
+                              marginBottom: '0.5rem',
+                              background: activeTranscriptIndex === i ? '#ebf5ff' : 'transparent',
+                              borderLeft: activeTranscriptIndex === i ? '4px solid #3b82f6' : '4px solid transparent',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <span style={{ fontSize: '0.8rem', color: '#666', display: 'block' }}>
+                              {Math.floor(t.start_sec / 60)}:{(t.start_sec % 60).toString().padStart(2, '0')}
+                            </span>
+                            {t.text}
+                          </div>
+                        ))
+                      )}
                     </div>
-                  </>
-                ) : (
-                  <div className="no-video">
-                    <p>No videos in this course yet.</p>
                   </div>
                 )}
               </div>
 
-              <div className="notes-section">
-                <h3>📝 My Notes</h3>
-                <form onSubmit={handleAddNote} className="note-form">
-                  <textarea
-                    value={newNote}
-                    onChange={e => setNewNote(e.target.value)}
-                    placeholder="Write your notes here..."
-                    rows={3}
-                  />
-                  <button type="submit" className="btn btn-primary btn-sm">Add Note</button>
-                </form>
-                <div className="notes-list">
-                  {notes.map(note => (
-                    <div key={note.id} className="note-card">
-                      <p>{note.content}</p>
-                      <small>{new Date(note.created_at).toLocaleString()}</small>
-                      <button onClick={() => handleDeleteNote(note.id)}>×</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="videos-list-section">
+              <div className="videos-list-section" style={{ marginTop: '2rem' }}>
                 <h3>📋 Course Videos ({courseVideos.length})</h3>
                 <div className="videos-list">
                   {courseVideos.map(video => (
@@ -1966,7 +2346,7 @@ const ForgotPasswordPage = () => {
     <div className="login-page">
       <div className="login-card animate-fade-in">
         <div className="login-header">
-          <div className="logo"><img src="/logo.jpeg" alt="Markpro360 Student Portal" /></div>
+          <div className="logo"><img src="/mp360-logo.png" alt="Markpro360 Student Portal" /></div>
           <h1>Reset Password</h1>
           <p>Enter your email to receive reset instructions</p>
         </div>
@@ -2045,7 +2425,7 @@ const ResetPasswordPage = () => {
       <div className="login-page">
         <div className="login-card animate-fade-in">
           <div className="login-header">
-<div className="logo"><img src="/logo.jpeg" alt="Markpro360 Student Portal" /></div>
+<div className="logo"><img src="/mp360-logo.png" alt="Markpro360 Student Portal" /></div>
             <h1>Invalid Link</h1>
             <p>This password reset link is invalid or expired</p>
           </div>
@@ -2061,7 +2441,7 @@ const ResetPasswordPage = () => {
     <div className="login-page">
       <div className="login-card animate-fade-in">
         <div className="login-header">
-          <div className="logo"><img src="/logo.jpeg" alt="Markpro360 Student Portal" /></div>
+          <div className="logo"><img src="/mp360-logo.png" alt="Markpro360 Student Portal" /></div>
           <h1>Set New Password</h1>
           <p>Enter your new password</p>
         </div>
@@ -2197,7 +2577,7 @@ const PaymentPage = () => {
     <div className="dashboard">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <img src="/logo.jpeg" alt="Markpro360 Student Portal" className="sidebar-logo" />
+          <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
         <nav className="nav-menu">
           <button onClick={() => navigate('/student')}>📚 My Courses</button>

@@ -34,7 +34,11 @@ backend/src/uploads/
 dist/
 build/
 
+# Vercel output
+.vercel/
+
 # Misc
 *.pid
 *.seed
 *.pid.lock
+.vercel
