@@ -13,6 +13,7 @@ import {
   PointElement
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Analytics } from '@vercel/analytics/react';
 import { paymentConfig } from './config/paymentConfig';
 import './App.css';
 
@@ -2788,6 +2789,7 @@ const App = () => {
           </BrowserRouter>
         </NotificationProvider>
       </AuthProvider>
+      <Analytics />
     </ThemeProvider>
   );
 };
