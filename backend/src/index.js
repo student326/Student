@@ -102,7 +102,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = process.env.VERCEL 
+  ? path.join('/tmp', 'uploads') 
+  : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -284,7 +286,8 @@ const storage = multer.diskStorage({
     if (file.fieldname === 'video') subDir = 'videos';
     else if (file.fieldname === 'receipt') subDir = 'receipts';
     
-    const dir = path.join(__dirname, 'uploads', subDir);
+    const baseDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+    const dir = path.join(baseDir, subDir);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
