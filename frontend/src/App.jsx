@@ -444,6 +444,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -474,11 +475,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+      <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+      <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
-        <nav className="nav-menu">
+        <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
             📊 Dashboard
           </button>
@@ -1378,6 +1383,7 @@ const TeacherDashboard = () => {
   const [liveFormData, setLiveFormData] = useState({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
   const [videoFile, setVideoFile] = useState(null);
   const [toast, setToast] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -1487,11 +1493,15 @@ const TeacherDashboard = () => {
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+      <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+      <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
-        <nav className="nav-menu">
+        <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'videos' ? 'active' : ''} onClick={() => setActiveTab('videos')}>📊 Videos</button>
           <button className={activeTab === 'live' ? 'active' : ''} onClick={() => setActiveTab('live')}>📡 Live Classes</button>
         </nav>
@@ -1503,10 +1513,10 @@ const TeacherDashboard = () => {
           <button onClick={handleLogout} className="btn-logout">Logout</button>
         </div>
       </aside>
-
+      
       <main className="main-content">
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-
+        
         <div className="top-bar">
           <h1>{activeTab === 'videos' ? 'My Videos' : 'My Live Classes'}</h1>
           <div className="top-bar-actions">
@@ -1717,6 +1727,7 @@ const StudentDashboard = () => {
   const [newNote, setNewNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [chatMessages, setChatMessages] = useState([]);
@@ -1964,11 +1975,15 @@ const StudentDashboard = () => {
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+      <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+      <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
-        <nav className="nav-menu">
+        <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'courses' ? 'active' : ''} onClick={() => { setActiveTab('courses'); closeCourse(); }}>📚 My Courses</button>
           <button className={activeTab === 'live-classes' ? 'active' : ''} onClick={() => { setActiveTab('live-classes'); closeCourse(); }}>📡 Live Classes</button>
         </nav>
@@ -1980,10 +1995,10 @@ const StudentDashboard = () => {
           <button onClick={handleLogout} className="btn-logout">Logout</button>
         </div>
       </aside>
-
+      
       <main className="main-content">
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-
+        
         <div className="top-bar">
           <h1>{selectedCourse ? selectedCourse.name : 'My Learning Dashboard'}</h1>
           <div className="top-bar-actions">
@@ -2490,6 +2505,7 @@ const PaymentPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const course = location.state?.course;
   const [toast, setToast] = useState(null);
   const [receiptFile, setReceiptFile] = useState(null);
@@ -2575,11 +2591,15 @@ const PaymentPage = () => {
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+      <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+      <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <img src="/mp360-logo.png" alt="Markpro360 Student Portal" className="sidebar-logo" />
         </div>
-        <nav className="nav-menu">
+        <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button onClick={() => navigate('/student')}>📚 My Courses</button>
         </nav>
         <div className="sidebar-footer">
@@ -2590,10 +2610,10 @@ const PaymentPage = () => {
           <button onClick={handleLogout} className="btn-logout">Logout</button>
         </div>
       </aside>
-
+      
       <main className="main-content">
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-
+        
         <div className="payment-page animate-fade-in">
           <button className="btn btn-secondary back-btn" onClick={() => navigate('/student')}>
             ← Back to Dashboard

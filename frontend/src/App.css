@@ -2169,3 +2169,535 @@ tr:hover {
   font-weight: 500;
 }
 
+/* ==================== MOBILE SIDEBAR TOGGLE ==================== */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1001;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border: none;
+  color: white;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+.mobile-menu-btn:hover {
+  transform: scale(1.05);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  animation: fadeIn 0.2s ease;
+}
+
+/* ==================== COMPREHENSIVE RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .dashboard {
+    position: relative;
+  }
+
+  .sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+    position: fixed !important;
+    z-index: 100 !important;
+    width: 280px !important;
+    height: 100vh !important;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 70px 16px 24px !important;
+  }
+
+  .top-bar {
+    margin: -70px -16px 16px -16px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .top-bar h1 {
+    font-size: 20px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .stats-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  .stats-row .stat-card.small {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: auto !important;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chart-container {
+    height: 200px !important;
+  }
+
+  .chart-container.doughnut {
+    max-width: 220px !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px !important;
+  }
+
+  .categories-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .videos-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .courses-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-section {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .login-card {
+    padding: 32px 24px !important;
+    max-width: 100% !important;
+    margin: 0 12px;
+  }
+
+  .login-header .logo img {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .notification-dropdown {
+    width: calc(100vw - 32px) !important;
+    right: -80px !important;
+    max-height: 350px !important;
+  }
+
+  .filter-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+  }
+
+  .filter-tabs button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sidebar-footer {
+    display: block !important;
+  }
+
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar:not(.mobile-open) .sidebar-footer {
+    display: none !important;
+  }
+
+  .sidebar.mobile-open .sidebar-footer {
+    display: block !important;
+  }
+
+  /* Override inline flex layouts that don't wrap on mobile */
+  .course-view-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  .course-view-content > div[style*="display: flex"] {
+    flex-direction: column !important;
+  }
+
+  .video-details[style*="display: flex"] {
+    flex-direction: column !important;
+  }
+
+  .videos-list-section {
+    grid-column: 1 !important;
+  }
+
+  .modal {
+    max-width: calc(100vw - 32px) !important;
+    margin: 0 16px;
+  }
+
+  .stat-icon {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 24px !important;
+  }
+
+  .stat-info h3 {
+    font-size: 24px !important;
+  }
+
+  .category-header {
+    padding: 16px !important;
+  }
+
+  .category-body {
+    padding: 16px !important;
+  }
+
+  .video-info h3 {
+    white-space: normal !important;
+  }
+
+  .video-info {
+    padding: 12px !important;
+  }
+
+  .video-card .video-thumbnail {
+    height: 130px !important;
+  }
+
+  .course-view-header {
+    padding: 24px !important;
+  }
+
+  .course-view-header h2 {
+    font-size: 20px !important;
+  }
+
+  .price-amount {
+    font-size: 28px !important;
+  }
+
+  .custom-controls[style*="display: flex"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .video-player-section[style*="display: flex"] {
+    flex-direction: column !important;
+  }
+
+  .notes-section[style*="margin-top"] {
+    margin-top: 1rem !important;
+  }
+
+  .back-btn {
+    margin-bottom: 16px !important;
+  }
+
+  .payment-body {
+    padding: 24px !important;
+  }
+
+  .payment-header {
+    padding: 24px !important;
+  }
+
+  .payment-header .course-icon {
+    font-size: 36px !important;
+  }
+
+  .bank-details {
+    padding: 16px !important;
+  }
+
+  .detail-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .attendance-form {
+    flex-direction: column !important;
+  }
+
+  .attendance-list h3 {
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 64px 12px 20px !important;
+  }
+
+  .top-bar {
+    margin: -64px -12px 12px -12px !important;
+    padding: 12px 16px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stats-row .stat-card.small {
+    flex: 1 1 100% !important;
+  }
+
+  .stat-card {
+    padding: 16px !important;
+  }
+
+  .stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 20px !important;
+  }
+
+  .stat-info h3 {
+    font-size: 22px !important;
+  }
+
+  .charts-grid {
+    gap: 16px !important;
+  }
+
+  .chart-container {
+    height: 180px !important;
+  }
+
+  .chart-card {
+    padding: 16px !important;
+  }
+
+  .chart-card h3 {
+    font-size: 16px !important;
+  }
+
+  .login-card {
+    padding: 24px 16px !important;
+  }
+
+  .login-header .logo img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .login-header h1 {
+    font-size: 24px !important;
+  }
+
+  .page-header h1 {
+    font-size: 22px !important;
+  }
+
+  .filter-tabs button {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+
+  table {
+    min-width: 500px !important;
+  }
+
+  th, td {
+    padding: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .user-cell {
+    gap: 8px !important;
+  }
+
+  .avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+
+  .notification-dropdown {
+    right: -60px !important;
+    max-height: 300px !important;
+  }
+
+  .category-card {
+    border-left-width: 3px !important;
+  }
+
+  .category-header h3 {
+    font-size: 16px !important;
+  }
+
+  .category-icon {
+    font-size: 28px !important;
+  }
+
+  .category-meta .price {
+    font-size: 18px !important;
+  }
+
+  .video-card .video-thumbnail {
+    height: 110px !important;
+  }
+
+  .attendance-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+  }
+
+  .attendance-card {
+    padding: 12px !important;
+  }
+
+  .attendance-card .avatar {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+
+  .mark-attendance {
+    padding: 16px !important;
+  }
+
+  .course-view-header {
+    padding: 20px !important;
+  }
+
+  .course-view-header .course-icon {
+    font-size: 32px !important;
+  }
+
+  .video-details {
+    padding: 16px !important;
+  }
+
+  .video-details h3 {
+    font-size: 16px !important;
+  }
+
+  .custom-controls {
+    padding: 8px !important;
+  }
+
+  .custom-controls select {
+    font-size: 12px !important;
+    padding: 4px 6px !important;
+  }
+
+  .custom-controls button {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+
+  .price-amount {
+    font-size: 24px !important;
+  }
+
+  .payment-card .price-section {
+    padding: 16px !important;
+  }
+
+  .payment-method {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .method-icon {
+    margin-bottom: 8px !important;
+  }
+
+  .payment-body {
+    padding: 16px !important;
+  }
+
+  .payment-header {
+    padding: 20px !important;
+  }
+
+  .payment-header h2 {
+    font-size: 20px !important;
+  }
+
+  .upload-placeholder span {
+    font-size: 13px !important;
+  }
+
+  .btn-lg {
+    padding: 14px 24px !important;
+    font-size: 16px !important;
+  }
+
+  .empty-state {
+    padding: 40px 16px !important;
+  }
+
+  .empty-icon {
+    font-size: 48px !important;
+  }
+
+  .empty-state h3 {
+    font-size: 18px !important;
+  }
+
+  .sidebar {
+    width: 260px !important;
+  }
+
+  .video-list-item {
+    padding: 10px !important;
+  }
+
+  .video-list-item .video-title {
+    font-size: 13px !important;
+  }
+
+  .notes-section textarea {
+    font-size: 13px !important;
+  }
+
+  .note-card p {
+    font-size: 13px !important;
+  }
+}
+
