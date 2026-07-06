@@ -254,6 +254,20 @@ const initDatabase = async () => {
     `);
     console.log('  ✓ video_transcripts table');
 
+    // Performance indexes for high-traffic queries
+    console.log('\n📊 Creating performance indexes...');
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_videos_category_id ON videos(category_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_videos_teacher_id ON videos(teacher_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_student_enrollments_student_id ON student_enrollments(student_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_course_purchases_student_id ON course_purchases(student_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_live_classes_category_id ON live_classes(category_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_live_classes_teacher_id ON live_classes(teacher_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_video_progress_student_id ON video_progress(student_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_video_views_video_id ON video_views(video_id)`);
+    await appClient.query(`CREATE INDEX IF NOT EXISTS idx_notes_video_id ON notes(video_id)`);
+    console.log('  ✓ performance indexes created');
+
     console.log('\n📊 Creating default users...');
 
     // Create or update default admin

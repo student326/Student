@@ -156,10 +156,9 @@ body {
 }
 
 .sidebar-logo {
-  width: 80px;
-  height: 80px;
+  width: 180px;
+  height: 180px;
   object-fit: contain;
-  border-radius: var(--radius-md);
 }
 
 .sidebar-header {
@@ -2317,7 +2316,8 @@ tr:hover {
     margin: 0 12px;
   }
 
-  .login-header .logo img {
+  .login-header .logo img,
+  .sidebar-logo {
     width: 120px !important;
     height: 120px !important;
   }
@@ -2520,7 +2520,8 @@ tr:hover {
     padding: 24px 16px !important;
   }
 
-  .login-header .logo img {
+  .login-header .logo img,
+  .sidebar-logo {
     width: 100px !important;
     height: 100px !important;
   }

@@ -18,9 +18,9 @@ const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
 
-// Global API rate limiting (100 requests per minute per IP)
+// Global API rate limiting (200 requests per minute per IP)
 const apiRateLimits = new Map();
-const API_RATE_LIMIT = 100;
+const API_RATE_LIMIT = 200;
 const API_RATE_WINDOW = 60 * 1000; // 1 minute
 
 // Token blacklist for logout
@@ -114,7 +114,10 @@ app.use('/uploads', express.static(uploadsDir));
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     })
   : new Pool({
       user: process.env.DB_USER || 'postgres',
@@ -122,7 +125,15 @@ const pool = process.env.DATABASE_URL
       database: process.env.DB_NAME || 'student_portal',
       password: process.env.DB_PASSWORD || 'postgres',
       port: process.env.DB_PORT || 5432,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     });
+
+// Handle pool errors gracefully
+pool.on('error', (err) => {
+  console.error('Unexpected pool error:', err.message);
+});
 
 // ==================== SECURITY CONFIG ====================
 
