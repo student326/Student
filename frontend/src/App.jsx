@@ -1417,13 +1417,53 @@ const TeacherDashboard = () => {
 
     setUploading(true);
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('category_id', formData.category_id);
-      formDataToSend.append('video', videoFile);
+      let videoUrl;
 
-      await apiUpload('/videos', formDataToSend);
+      // Try Cloudinary upload first
+      try {
+        const sigRes = await apiFetch('/upload/signature');
+        if (sigRes && sigRes.signature) {
+          const cloudForm = new FormData();
+          cloudForm.append('file', videoFile);
+          cloudForm.append('api_key', sigRes.api_key);
+          cloudForm.append('timestamp', sigRes.timestamp);
+          cloudForm.append('signature', sigRes.signature);
+          cloudForm.append('folder', 'portal_videos');
+
+          const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigRes.cloud_name}/video/upload`, {
+            method: 'POST',
+            body: cloudForm,
+          });
+          const cloudData = await cloudRes.json();
+          if (cloudRes.ok && cloudData.secure_url) {
+            videoUrl = cloudData.secure_url;
+          } else {
+            throw new Error(cloudData.error?.message || 'Cloudinary upload failed');
+          }
+        }
+      } catch (cloudErr) {
+        console.log('Cloudinary not available, using direct upload:', cloudErr.message);
+      }
+
+      if (videoUrl) {
+        await apiFetch('/videos/cloudinary', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            category_id: formData.category_id,
+            cloudinary_url: videoUrl,
+          }),
+        });
+      } else {
+        const formDataToSend = new FormData();
+        formDataToSend.append('title', formData.title);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('category_id', formData.category_id);
+        formDataToSend.append('video', videoFile);
+        await apiUpload('/videos', formDataToSend);
+      }
+
       showToast('Video uploaded successfully!', 'success');
       setShowModal(false);
       setFormData({ title: '', description: '', category_id: '' });

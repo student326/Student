@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const multer = require('multer');
 const crypto = require('crypto');
 const fs = require('fs');
+const { cloudinary, isConfigured, generateUploadSignature } = require('./config/cloudinary');
 
 const app = express();
 
@@ -82,7 +83,7 @@ app.use((req, res, next) => {
   // Referrer policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   // Content Security Policy
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' https://res.cloudinary.com;");
   next();
 });
 
@@ -1230,6 +1231,27 @@ app.post('/api/videos', authenticateToken, requireRole('admin', 'teacher'), uplo
   }
 });
 
+// Cloudinary video upload (accepts a cloudinary URL instead of file)
+app.post('/api/videos/cloudinary', authenticateToken, requireRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { title, description, category_id, cloudinary_url } = req.body;
+
+    if (!title || !category_id || !cloudinary_url) {
+      return res.status(400).json({ message: 'Title, category, and video URL are required' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO videos (title, description, video_url, category_id, teacher_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [title, description, cloudinary_url, category_id, req.user.id]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create video error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.put('/api/videos/:id', authenticateToken, requireRole('admin', 'teacher'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -1891,6 +1913,21 @@ app.post('/api/videos/:id/transcripts', authenticateToken, requireRole('teacher'
   } catch (error) {
     await pool.query('ROLLBACK');
     console.error('Save transcripts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ==================== CLOUDINARY UPLOAD SIGNATURE ====================
+
+app.get('/api/upload/signature', authenticateToken, requireRole('admin', 'teacher'), (req, res) => {
+  try {
+    if (!isConfigured()) {
+      return res.status(400).json({ message: 'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.' });
+    }
+    const sig = generateUploadSignature();
+    res.json(sig);
+  } catch (error) {
+    console.error('Signature error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
