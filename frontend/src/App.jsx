@@ -1407,28 +1407,31 @@ const TeacherDashboard = () => {
 
   const showToast = (message, type) => setToast({ message, type });
 
-  const getYouTubeId = (url) => {
-    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
+  const getEmbedUrl = (url) => {
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+
+    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+
+    return null;
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!formData.youtube_url) {
-      showToast('Please enter a YouTube video URL', 'error');
+      showToast('Please enter a video URL (YouTube or Google Drive)', 'error');
       return;
     }
 
-    const videoId = getYouTubeId(formData.youtube_url);
-    if (!videoId) {
-      showToast('Invalid YouTube URL. Please enter a valid YouTube video link.', 'error');
+    const embedUrl = getEmbedUrl(formData.youtube_url);
+    if (!embedUrl) {
+      showToast('Invalid URL. Please enter a valid YouTube or Google Drive video link.', 'error');
       return;
     }
 
     setUploading(true);
     try {
-      const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-
       await apiFetch('/videos/url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1547,7 +1550,7 @@ const TeacherDashboard = () => {
           <div className="top-bar-actions">
             {activeTab === 'videos' ? (
               <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                + Add YouTube Video
+                + Add Video
               </button>
             ) : (
               <button className="btn btn-primary" onClick={() => setShowLiveModal(true)}>
@@ -1618,7 +1621,7 @@ const TeacherDashboard = () => {
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>Add YouTube Video</h2>
+                <h2>Add Video</h2>
                 <button onClick={() => setShowModal(false)}>×</button>
               </div>
               <form onSubmit={handleUpload}>
@@ -1655,15 +1658,15 @@ const TeacherDashboard = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>YouTube Video URL</label>
+                  <label>Video URL (YouTube or Google Drive)</label>
                   <input
                     type="url"
                     value={formData.youtube_url}
                     onChange={e => setFormData({ ...formData, youtube_url: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
                     required
                   />
-                  <small style={{ color: '#666', marginTop: '4px', display: 'block' }}>Paste a YouTube video link (unlisted or public)</small>
+                  <small style={{ color: '#666', marginTop: '4px', display: 'block' }}>Paste a YouTube link or a Google Drive video share link</small>
                 </div>
                 <button type="submit" className="btn btn-primary btn-block" disabled={uploading}>
                   {uploading ? 'Adding...' : 'Add Video'}
@@ -2206,7 +2209,7 @@ const StudentDashboard = () => {
                   {currentVideo ? (
                     <>
                       <div className="video-player" style={{ position: 'relative' }}>
-                        {currentVideo.video_url && currentVideo.video_url.includes('youtube.com/embed/') ? (
+                        {currentVideo.video_url && (currentVideo.video_url.includes('youtube.com/embed/') || currentVideo.video_url.includes('drive.google.com')) ? (
                           <iframe
                             src={currentVideo.video_url}
                             title={currentVideo.title}
