@@ -46,3 +46,5 @@ portal-google-key.json
 *.pid.lock
 .vercel
 .env*
+
+portal-google-key.b64.txt

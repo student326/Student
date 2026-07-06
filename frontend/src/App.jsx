@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { paymentConfig } from './config/paymentConfig';
-import TeacherDriveUpload from './components/TeacherDriveUpload';
+
 import './App.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement);
@@ -1380,6 +1380,7 @@ const TeacherDashboard = () => {
   const [showTranscriptModal, setShowTranscriptModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
   const [formData, setFormData] = useState({ title: '', description: '', category_id: '', youtube_url: '' });
   const [liveFormData, setLiveFormData] = useState({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
   const [toast, setToast] = useState(null);
@@ -1420,33 +1421,42 @@ const TeacherDashboard = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!formData.youtube_url) {
-      showToast('Please enter a video URL (YouTube or Google Drive)', 'error');
-      return;
-    }
-
-    const embedUrl = getEmbedUrl(formData.youtube_url);
-    if (!embedUrl) {
-      showToast('Invalid URL. Please enter a valid YouTube or Google Drive video link.', 'error');
-      return;
-    }
-
     setUploading(true);
     try {
-      await apiFetch('/videos/url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          category_id: formData.category_id,
-          video_url: embedUrl,
-        }),
-      });
-
-      showToast('Video added successfully!', 'success');
+      if (videoFile) {
+        const form = new FormData();
+        form.append('video', videoFile);
+        form.append('title', formData.title);
+        form.append('description', formData.description);
+        form.append('category_id', formData.category_id);
+        await apiFetch('/drive/upload', { method: 'POST', body: form });
+        showToast('Video uploaded to Google Drive!', 'success');
+      } else if (formData.youtube_url) {
+        const embedUrl = getEmbedUrl(formData.youtube_url);
+        if (!embedUrl) {
+          showToast('Invalid video URL', 'error');
+          setUploading(false);
+          return;
+        }
+        await apiFetch('/videos/url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            category_id: formData.category_id,
+            video_url: embedUrl,
+          }),
+        });
+        showToast('Video added successfully!', 'success');
+      } else {
+        showToast('Select a video file or paste a URL', 'error');
+        setUploading(false);
+        return;
+      }
       setShowModal(false);
       setFormData({ title: '', description: '', category_id: '', youtube_url: '' });
+      setVideoFile(null);
       loadData();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1532,7 +1542,6 @@ const TeacherDashboard = () => {
         </div>
         <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'videos' ? 'active' : ''} onClick={() => setActiveTab('videos')}>📊 Videos</button>
-          <button className={activeTab === 'drive' ? 'active' : ''} onClick={() => setActiveTab('drive')}>📁 Drive</button>
           <button className={activeTab === 'live' ? 'active' : ''} onClick={() => setActiveTab('live')}>📡 Live Classes</button>
         </nav>
         <div className="sidebar-footer">
@@ -1548,7 +1557,7 @@ const TeacherDashboard = () => {
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
         
         <div className="top-bar">
-          <h1>{activeTab === 'videos' ? 'My Videos' : activeTab === 'drive' ? 'Google Drive Upload' : 'My Live Classes'}</h1>
+          <h1>{activeTab === 'videos' ? 'My Videos' : 'My Live Classes'}</h1>
           <div className="top-bar-actions">
             {activeTab === 'videos' ? (
               <button className="btn btn-primary" onClick={() => setShowModal(true)}>
@@ -1564,9 +1573,7 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        {activeTab === 'drive' ? (
-          <TeacherDriveUpload courses={categories} />
-        ) : (
+        {(activeTab === 'videos' || activeTab === 'live') ? (
         <div className="animate-fade-in">
           <div className="stats-row">
             <div className="stat-card small">
@@ -1620,7 +1627,7 @@ const TeacherDashboard = () => {
               </div>
             ))}
           </div>
-        </div>)}
+        </div>) : null}
 
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -1663,15 +1670,38 @@ const TeacherDashboard = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Video URL (YouTube or Google Drive)</label>
+                  <label>Upload Video File (auto-uploads to Google Drive)</label>
+                  <div className="file-drop-zone" style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer', background: videoFile ? '#f0fdf4' : '#fafafa' }}
+                    onClick={() => document.getElementById('video-file-input').click()}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#4f46e5'; }}
+                    onDragLeave={e => { e.currentTarget.style.borderColor = '#ccc'; }}
+                    onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) setVideoFile(f); }}>
+                    {videoFile ? (
+                      <div>
+                        <span style={{ fontSize: '24px' }}>📹</span>
+                        <p style={{ fontWeight: 600, margin: '4px 0' }}>{videoFile.name}</p>
+                        <small>{(videoFile.size / 1024 / 1024).toFixed(1)} MB</small>
+                      </div>
+                    ) : (
+                      <div>
+                        <span style={{ fontSize: '32px' }}>📁</span>
+                        <p style={{ margin: '8px 0' }}>Drag & drop or click to browse</p>
+                        <small>MP4, MOV, AVI, MKV, WEBM (max 500MB)</small>
+                      </div>
+                    )}
+                  </div>
+                  <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/avi,video/mkv,video/quicktime" style={{ display: 'none' }}
+                    onChange={e => setVideoFile(e.target.files[0] || null)} />
+                  {videoFile && <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '4px' }} onClick={() => setVideoFile(null)}>Remove file</button>}
+                </div>
+                <div className="form-group">
+                  <label>Or paste a YouTube/Drive link instead</label>
                   <input
                     type="url"
                     value={formData.youtube_url}
                     onChange={e => setFormData({ ...formData, youtube_url: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
-                    required
+                    placeholder="https://www.youtube.com/watch?v=..."
                   />
-                  <small style={{ color: '#666', marginTop: '4px', display: 'block' }}>Paste a YouTube link or a Google Drive video share link</small>
                 </div>
                 <button type="submit" className="btn btn-primary btn-block" disabled={uploading}>
                   {uploading ? 'Adding...' : 'Add Video'}
