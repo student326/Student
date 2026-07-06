@@ -14,8 +14,6 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { paymentConfig } from './config/paymentConfig';
-import TeacherR2Videos from './components/TeacherR2Videos';
-import StudentR2Player from './components/StudentR2Player';
 import TeacherDriveUpload from './components/TeacherDriveUpload';
 import './App.css';
 
@@ -1534,7 +1532,6 @@ const TeacherDashboard = () => {
         </div>
         <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'videos' ? 'active' : ''} onClick={() => setActiveTab('videos')}>📊 Videos</button>
-          <button className={activeTab === 'r2' ? 'active' : ''} onClick={() => setActiveTab('r2')}>☁️ R2 Videos</button>
           <button className={activeTab === 'drive' ? 'active' : ''} onClick={() => setActiveTab('drive')}>📁 Drive</button>
           <button className={activeTab === 'live' ? 'active' : ''} onClick={() => setActiveTab('live')}>📡 Live Classes</button>
         </nav>
@@ -1551,7 +1548,7 @@ const TeacherDashboard = () => {
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
         
         <div className="top-bar">
-          <h1>{activeTab === 'videos' ? 'My Videos' : activeTab === 'r2' ? 'R2 Video Management' : activeTab === 'drive' ? 'Google Drive Upload' : 'My Live Classes'}</h1>
+          <h1>{activeTab === 'videos' ? 'My Videos' : activeTab === 'drive' ? 'Google Drive Upload' : 'My Live Classes'}</h1>
           <div className="top-bar-actions">
             {activeTab === 'videos' ? (
               <button className="btn btn-primary" onClick={() => setShowModal(true)}>
@@ -1567,9 +1564,7 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        {activeTab === 'r2' ? (
-          <TeacherR2Videos courses={categories} />
-        ) : activeTab === 'drive' ? (
+        {activeTab === 'drive' ? (
           <TeacherDriveUpload courses={categories} />
         ) : (
         <div className="animate-fade-in">
@@ -2018,7 +2013,6 @@ const StudentDashboard = () => {
         </div>
         <nav className="nav-menu" onClick={() => setMobileMenuOpen(false)}>
           <button className={activeTab === 'courses' ? 'active' : ''} onClick={() => { setActiveTab('courses'); closeCourse(); }}>📚 My Courses</button>
-          <button className={activeTab === 'r2-videos' ? 'active' : ''} onClick={() => { setActiveTab('r2-videos'); closeCourse(); }}>☁️ R2 Videos</button>
           <button className={activeTab === 'live-classes' ? 'active' : ''} onClick={() => { setActiveTab('live-classes'); closeCourse(); }}>📡 Live Classes</button>
         </nav>
         <div className="sidebar-footer">
@@ -2041,9 +2035,7 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {activeTab === 'r2-videos' ? (
-          <StudentR2Player courseId={null} courseName="All R2 Videos" />
-        ) : activeTab === 'live-classes' ? (
+        {activeTab === 'live-classes' ? (
           <div className="animate-fade-in">
             {selectedLiveClass ? (
               <div className="live-class-view">
