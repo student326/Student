@@ -9,6 +9,8 @@ const multer = require('multer');
 const crypto = require('crypto');
 const fs = require('fs');
 const { cloudinary, isConfigured, generateUploadSignature } = require('./config/cloudinary');
+const { createRouter: createR2Router } = require('./routes/r2Videos');
+const { createRouter: createDriveRouter } = require('./routes/driveVideos');
 
 const app = express();
 
@@ -1932,6 +1934,16 @@ app.get('/api/upload/signature', authenticateToken, requireRole('admin', 'teache
   }
 });
 
+// ==================== R2 VIDEO ROUTES ====================
+
+const r2Router = createR2Router(pool);
+app.use('/api/r2', r2Router);
+
+// ==================== GOOGLE DRIVE VIDEO ROUTES ====================
+
+const driveRouter = createDriveRouter(pool);
+app.use('/api/drive', driveRouter);
+
 // ==================== HEALTH CHECK ====================
 
 app.get('/api/health', (req, res) => {
@@ -1942,9 +1954,42 @@ app.get('/api/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+const migrateR2Tables = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS modules (
+        id SERIAL PRIMARY KEY,
+        category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    const r2Cols = [
+      { name: 'module_id', type: 'INTEGER REFERENCES modules(id) ON DELETE SET NULL' },
+      { name: 'video_key', type: 'VARCHAR(500)' },
+      { name: 'file_size', type: 'BIGINT DEFAULT 0' },
+      { name: 'mime_type', type: 'VARCHAR(100)' },
+      { name: 'is_r2', type: 'BOOLEAN DEFAULT false' },
+    ];
+    for (const col of r2Cols) {
+      await pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'videos' AND column_name = '${col.name}') THEN ALTER TABLE videos ADD COLUMN ${col.name} ${col.type}; END IF; END $$;`);
+    }
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_modules_category_id ON modules(category_id)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_videos_module_id ON videos(module_id)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_videos_is_r2 ON videos(is_r2)');
+    console.log('✅ R2 tables ready');
+  } catch (err) {
+    console.error('R2 migration error:', err.message);
+  }
+};
+
 const startServer = async () => {
   // Initialize security tables
   await initializeSecurityTables();
+  await migrateR2Tables();
   
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);

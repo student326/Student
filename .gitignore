@@ -37,6 +37,9 @@ build/
 # Vercel output
 .vercel/
 
+# Service account keys
+portal-google-key.json
+
 # Misc
 *.pid
 *.seed
