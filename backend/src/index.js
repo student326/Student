@@ -1760,6 +1760,21 @@ app.post('/api/live-classes', authenticateToken, requireRole('teacher', 'admin')
   }
 });
 
+app.delete('/api/live-classes/:id', authenticateToken, requireRole('teacher', 'admin'), async (req, res) => {
+  try {
+    const liveClass = await pool.query('SELECT * FROM live_classes WHERE id = $1', [req.params.id]);
+    if (liveClass.rows.length === 0) return res.status(404).json({ message: 'Live class not found' });
+    if (req.user.role !== 'admin' && liveClass.rows[0].teacher_id !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    await pool.query('DELETE FROM live_classes WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Live class deleted' });
+  } catch (error) {
+    console.error('Delete live class error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.get('/api/live-classes/:id/chat', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
