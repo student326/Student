@@ -1379,9 +1379,8 @@ const TeacherDashboard = () => {
   const [showTranscriptModal, setShowTranscriptModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', category_id: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', category_id: '', youtube_url: '' });
   const [liveFormData, setLiveFormData] = useState({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
-  const [videoFile, setVideoFile] = useState(null);
   const [toast, setToast] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { logout, user } = useAuth();
@@ -1408,66 +1407,42 @@ const TeacherDashboard = () => {
 
   const showToast = (message, type) => setToast({ message, type });
 
+  const getYouTubeId = (url) => {
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!videoFile) {
-      showToast('Please select a video file', 'error');
+    if (!formData.youtube_url) {
+      showToast('Please enter a YouTube video URL', 'error');
+      return;
+    }
+
+    const videoId = getYouTubeId(formData.youtube_url);
+    if (!videoId) {
+      showToast('Invalid YouTube URL. Please enter a valid YouTube video link.', 'error');
       return;
     }
 
     setUploading(true);
     try {
-      let videoUrl;
+      const embedUrl = `https://www.youtube.com/embed/${videoId}`;
 
-      // Try Cloudinary upload first
-      try {
-        const sigRes = await apiFetch('/upload/signature');
-        if (sigRes && sigRes.signature) {
-          const cloudForm = new FormData();
-          cloudForm.append('file', videoFile);
-          cloudForm.append('api_key', sigRes.api_key);
-          cloudForm.append('timestamp', sigRes.timestamp);
-          cloudForm.append('signature', sigRes.signature);
-          cloudForm.append('folder', 'portal_videos');
+      await apiFetch('/videos/url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          category_id: formData.category_id,
+          video_url: embedUrl,
+        }),
+      });
 
-          const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigRes.cloud_name}/video/upload`, {
-            method: 'POST',
-            body: cloudForm,
-          });
-          const cloudData = await cloudRes.json();
-          if (cloudRes.ok && cloudData.secure_url) {
-            videoUrl = cloudData.secure_url;
-          } else {
-            throw new Error(cloudData.error?.message || 'Cloudinary upload failed');
-          }
-        }
-      } catch (cloudErr) {
-        console.log('Cloudinary not available, using direct upload:', cloudErr.message);
-      }
-
-      if (videoUrl) {
-        await apiFetch('/videos/cloudinary', {
-          method: 'POST',
-          body: JSON.stringify({
-            title: formData.title,
-            description: formData.description,
-            category_id: formData.category_id,
-            cloudinary_url: videoUrl,
-          }),
-        });
-      } else {
-        const formDataToSend = new FormData();
-        formDataToSend.append('title', formData.title);
-        formDataToSend.append('description', formData.description);
-        formDataToSend.append('category_id', formData.category_id);
-        formDataToSend.append('video', videoFile);
-        await apiUpload('/videos', formDataToSend);
-      }
-
-      showToast('Video uploaded successfully!', 'success');
+      showToast('Video added successfully!', 'success');
       setShowModal(false);
-      setFormData({ title: '', description: '', category_id: '' });
-      setVideoFile(null);
+      setFormData({ title: '', description: '', category_id: '', youtube_url: '' });
       loadData();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1572,7 +1547,7 @@ const TeacherDashboard = () => {
           <div className="top-bar-actions">
             {activeTab === 'videos' ? (
               <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                + Upload Video
+                + Add YouTube Video
               </button>
             ) : (
               <button className="btn btn-primary" onClick={() => setShowLiveModal(true)}>
@@ -1643,7 +1618,7 @@ const TeacherDashboard = () => {
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>Upload Video Lecture</h2>
+                <h2>Add YouTube Video</h2>
                 <button onClick={() => setShowModal(false)}>×</button>
               </div>
               <form onSubmit={handleUpload}>
@@ -1680,16 +1655,18 @@ const TeacherDashboard = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Video File</label>
+                  <label>YouTube Video URL</label>
                   <input
-                    type="file"
-                    accept="video/*"
-                    onChange={e => setVideoFile(e.target.files[0])}
+                    type="url"
+                    value={formData.youtube_url}
+                    onChange={e => setFormData({ ...formData, youtube_url: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
                     required
                   />
+                  <small style={{ color: '#666', marginTop: '4px', display: 'block' }}>Paste a YouTube video link (unlisted or public)</small>
                 </div>
                 <button type="submit" className="btn btn-primary btn-block" disabled={uploading}>
-                  {uploading ? 'Uploading...' : 'Upload Video'}
+                  {uploading ? 'Adding...' : 'Add Video'}
                 </button>
               </form>
             </div>
@@ -2229,32 +2206,45 @@ const StudentDashboard = () => {
                   {currentVideo ? (
                     <>
                       <div className="video-player" style={{ position: 'relative' }}>
-                        <video
-                          ref={videoRef}
-                          src={currentVideo.video_url}
-                          controls
-                          autoPlay
-                          onTimeUpdate={handleVideoProgress}
-                          onEnded={() => handleVideoProgress(true)}
-                        />
-                        <div className="video-progress-bar">
-                          <div 
-                            className="video-progress-fill" 
-                            style={{ width: `${videoProgress}%` }}
+                        {currentVideo.video_url && currentVideo.video_url.includes('youtube.com/embed/') ? (
+                          <iframe
+                            src={currentVideo.video_url}
+                            title={currentVideo.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{ width: '100%', aspectRatio: '16/9', borderRadius: '12px' }}
                           />
-                        </div>
-                        {/* Custom Controls Bar */}
-                        <div className="custom-controls" style={{ display: 'flex', gap: '10px', padding: '10px', background: '#f8f9fa', borderRadius: '0 0 12px 12px', alignItems: 'center' }}>
-                          <select value={playbackSpeed} onChange={e => changeSpeed(Number(e.target.value))} style={{ padding: '4px', borderRadius: '4px' }}>
-                            <option value={0.5}>0.5x</option>
-                            <option value={1}>1.0x</option>
-                            <option value={1.25}>1.25x</option>
-                            <option value={1.5}>1.5x</option>
-                            <option value={2}>2.0x</option>
-                          </select>
-                          <button className="btn btn-secondary btn-sm" onClick={togglePiP}>PiP Mode</button>
-                          <button className="btn btn-primary btn-sm" onClick={addBookmark}>+ Add Bookmark</button>
-                        </div>
+                        ) : (
+                          <>
+                            <video
+                              ref={videoRef}
+                              src={currentVideo.video_url}
+                              controls
+                              autoPlay
+                              onTimeUpdate={handleVideoProgress}
+                              onEnded={() => handleVideoProgress(true)}
+                            />
+                            <div className="video-progress-bar">
+                              <div 
+                                className="video-progress-fill" 
+                                style={{ width: `${videoProgress}%` }}
+                              />
+                            </div>
+                            {/* Custom Controls Bar */}
+                            <div className="custom-controls" style={{ display: 'flex', gap: '10px', padding: '10px', background: '#f8f9fa', borderRadius: '0 0 12px 12px', alignItems: 'center' }}>
+                              <select value={playbackSpeed} onChange={e => changeSpeed(Number(e.target.value))} style={{ padding: '4px', borderRadius: '4px' }}>
+                                <option value={0.5}>0.5x</option>
+                                <option value={1}>1.0x</option>
+                                <option value={1.25}>1.25x</option>
+                                <option value={1.5}>1.5x</option>
+                                <option value={2}>2.0x</option>
+                              </select>
+                              <button className="btn btn-secondary btn-sm" onClick={togglePiP}>PiP Mode</button>
+                              <button className="btn btn-primary btn-sm" onClick={addBookmark}>+ Add Bookmark</button>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
                       <div className="video-details" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

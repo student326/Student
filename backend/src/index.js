@@ -1231,18 +1231,18 @@ app.post('/api/videos', authenticateToken, requireRole('admin', 'teacher'), uplo
   }
 });
 
-// Cloudinary video upload (accepts a cloudinary URL instead of file)
-app.post('/api/videos/cloudinary', authenticateToken, requireRole('admin', 'teacher'), async (req, res) => {
+// Create video from URL (YouTube, etc.)
+app.post('/api/videos/url', authenticateToken, requireRole('admin', 'teacher'), async (req, res) => {
   try {
-    const { title, description, category_id, cloudinary_url } = req.body;
+    const { title, description, category_id, video_url } = req.body;
 
-    if (!title || !category_id || !cloudinary_url) {
+    if (!title || !category_id || !video_url) {
       return res.status(400).json({ message: 'Title, category, and video URL are required' });
     }
 
     const result = await pool.query(
       'INSERT INTO videos (title, description, video_url, category_id, teacher_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description, cloudinary_url, category_id, req.user.id]
+      [title, description, video_url, category_id, req.user.id]
     );
 
     res.status(201).json(result.rows[0]);
