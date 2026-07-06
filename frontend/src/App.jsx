@@ -1379,7 +1379,7 @@ const TeacherDashboard = () => {
   const [showTranscriptModal, setShowTranscriptModal] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', category_id: '', duration: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', category_id: '' });
   const [liveFormData, setLiveFormData] = useState({ title: '', description: '', meetingUrl: '', startTime: '', categoryId: '' });
   const [videoFile, setVideoFile] = useState(null);
   const [toast, setToast] = useState(null);
@@ -1421,13 +1421,12 @@ const TeacherDashboard = () => {
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('category_id', formData.category_id);
-      formDataToSend.append('duration', formData.duration || 0);
       formDataToSend.append('video', videoFile);
 
       await apiUpload('/videos', formDataToSend);
       showToast('Video uploaded successfully!', 'success');
       setShowModal(false);
-      setFormData({ title: '', description: '', category_id: '', duration: '' });
+      setFormData({ title: '', description: '', category_id: '' });
       setVideoFile(null);
       loadData();
     } catch (err) {
@@ -1442,6 +1441,17 @@ const TeacherDashboard = () => {
     try {
       await apiFetch(`/videos/${id}`, { method: 'DELETE' });
       showToast('Video deleted!', 'success');
+      loadData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleDeleteLiveClass = async (id) => {
+    if (!confirm('Delete this live class?')) return;
+    try {
+      await apiFetch(`/live-classes/${id}`, { method: 'DELETE' });
+      showToast('Live class deleted!', 'success');
       loadData();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1558,7 +1568,6 @@ const TeacherDashboard = () => {
                   <p className="category-tag">{video.category_name}</p>
                   <div className="video-meta">
                     <span>👁️ {video.views || 0} views</span>
-                    <span>⏱️ {video.duration || 0}s</span>
                   </div>
                   <div className="video-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                     <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedVideoId(video.id); setShowTranscriptModal(true); }}>
@@ -1581,6 +1590,9 @@ const TeacherDashboard = () => {
                   <a href={lc.meeting_url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ marginTop: '0.5rem', display: 'block', textAlign: 'center' }}>
                     Join Meeting
                   </a>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteLiveClass(lc.id)} style={{ marginTop: '0.5rem', width: '100%' }}>
+                    Remove
+                  </button>
                 </div>
               </div>
             ))}
@@ -1626,15 +1638,6 @@ const TeacherDashboard = () => {
                       <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                     ))}
                   </select>
-                </div>
-                <div className="form-group">
-                  <label>Duration (seconds)</label>
-                  <input
-                    type="number"
-                    value={formData.duration}
-                    onChange={e => setFormData({ ...formData, duration: e.target.value })}
-                    placeholder="Video duration in seconds"
-                  />
                 </div>
                 <div className="form-group">
                   <label>Video File</label>
@@ -1752,7 +1755,7 @@ const StudentDashboard = () => {
       setAvailableCourses(coursesData.filter(c => !c.is_enrolled));
       
       // Filter live classes based on enrollments
-      const enrolledCategoryIds = enrollData.map(e => e.category_id);
+      const enrolledCategoryIds = enrollData.map(e => e.id);
       setLiveClasses(liveData.filter(lc => enrolledCategoryIds.includes(lc.category_id)));
     } catch (err) {
       showToast(err.message, 'error');
